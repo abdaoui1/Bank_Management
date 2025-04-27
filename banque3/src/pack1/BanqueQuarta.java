@@ -6,6 +6,9 @@ import java.sql.*;
 import java.text.DecimalFormat;
 
 class BanqueQuarta extends JFrame {
+
+    private static final long serialVersionUID = -1887623329237351381L;
+
     public BanqueQuarta() {
         setTitle("Banque Quarta - Accueil");
         setSize(400, 300);
