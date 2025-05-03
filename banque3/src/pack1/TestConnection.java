@@ -9,7 +9,7 @@ import com.mysql.cj.Query;
 
 public class TestConnection {
     public static void main(String[] args) {
-        String url = "jdbc:mysql://localhost:3306/test"; // Remplace avec le nom de ta base
+        String url = "jdbc:mysql://localhost:3306/quarta"; // Remplace avec le nom de ta base
         String user = "root"; // Remplace avec ton utilisateur MySQL
         String password = ""; // Mets ton mot de passe MySQL (laisser vide si pas de mot de passe)
 

@@ -46,9 +46,11 @@ class EmployeInterface extends JFrame {
         JPanel buttonsPanel = new JPanel();
         JButton addClientBtn = new JButton("Ajouter Client");
         JButton addCompteBtn = new JButton("Créer Compte");
+        JButton deleteClientBtn = new JButton("Supprimer Client");
         
         buttonsPanel.add(addClientBtn);
         buttonsPanel.add(addCompteBtn);
+        buttonsPanel.add(deleteClientBtn);
         
         clientsPanel.add(scrollPane, BorderLayout.CENTER);
         clientsPanel.add(buttonsPanel, BorderLayout.SOUTH);
@@ -73,6 +75,55 @@ class EmployeInterface extends JFrame {
         add(tabbedPane);
         
         // Actions des boutons
+        // abdessamad modification  Begin
+        deleteClientBtn.addActionListener(e -> {
+            int selectedRow = clientsTable.getSelectedRow();
+            
+            if ( selectedRow == -1 ) {
+                JOptionPane.showMessageDialog(this,"Sélectionnez un client à supprimer", "Erreur", JOptionPane.WARNING_MESSAGE);
+            }
+            
+            int idClientToDelete = (int) clientsTable.getValueAt(selectedRow, 0);
+            
+            int confirm = JOptionPane.showConfirmDialog(this, "Êtes-vous sûr de vouloir supprimer cet client ?", "Confirmer la suppression", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                try ( Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "") ) {
+                    
+                    
+                    String reqDeleteComptes = "DELETE FROM comptes  WHERE id_client=? ;";
+                    PreparedStatement stmtDeleteComptes = conn.prepareStatement(reqDeleteComptes);
+                    stmtDeleteComptes.setInt(1 , idClientToDelete);
+                    stmtDeleteComptes.executeUpdate();
+                    
+                    String reqDeleteClient = "DELETE FROM utilisateurs  WHERE id=? AND type='client' ;";
+                    PreparedStatement stmtDeleteClient = conn.prepareStatement(reqDeleteClient);
+                    stmtDeleteClient.setInt(1 , idClientToDelete);
+                    
+                    
+                    stmtDeleteClient.executeUpdate();
+                    // Rafraîchir la table
+                    Statement stmt2 = conn.createStatement();
+                    ResultSet rs2 = stmt2.executeQuery("SELECT id, nom, prenom, cin FROM utilisateurs WHERE type = 'client'");
+                    clientsTable.setModel(DbUtils.resultSetToTableModel(rs2));
+                    
+                    // Rafraîchir la table des comptes
+                    Statement stmt4 = conn.createStatement();
+                    ResultSet rs5 = stmt4.executeQuery("SELECT c.id, c.numero_compte, c.type_compte, c.solde, u.nom, u.prenom " +
+                                          "FROM comptes c JOIN utilisateurs u ON c.id_client = u.id");
+                    comptesTable.setModel(DbUtils.resultSetToTableModel(rs5));
+                
+                
+                } catch (SQLException er) {
+                    JOptionPane.showMessageDialog(this, "Erreur: " + er.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        
+        });
+        
+        
+        // abdessamad modification  End
+        
+        
         addClientBtn.addActionListener(e -> {
             JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
             
