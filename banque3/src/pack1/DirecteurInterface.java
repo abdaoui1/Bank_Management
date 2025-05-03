@@ -97,8 +97,8 @@ class DirecteurInterface extends EmployeInterface {
             statsArea.setEditable(false);
             
             statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
-//            chargerEmployes();
-//            chargerStatistiques();
+            chargerEmployes();
+            chargerStatistiques();
             tabbedPane.addTab("Statistiques", statsPanel);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), 
@@ -267,34 +267,65 @@ class DirecteurInterface extends EmployeInterface {
 
     private void chargerStatistiques() {
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
+//            Modification Begin 
             // Nombre de clients
-            String sqlClients = "SELECT COUNT(*) AS nb_clients FROM utilisateurs WHERE type = 'client'";
+            String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sqlClients);
-            if (rs.next()) {
-                lblNbClients.setText(String.valueOf(rs.getInt("nb_clients")));
-            }
-
-            // Nombre d'employés
-            String sqlEmployes = "SELECT COUNT(*) AS nb_employes FROM utilisateurs WHERE type = 'employe'";
-            rs = stmt.executeQuery(sqlEmployes);
-            if (rs.next()) {
-                lblNbEmployes.setText(String.valueOf(rs.getInt("nb_employes")));
-            }
-
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            int nbClients = rs.getInt(1);
+            
             // Nombre de comptes
-            String sqlComptes = "SELECT COUNT(*) AS nb_comptes FROM comptes";
-            rs = stmt.executeQuery(sqlComptes);
-            if (rs.next()) {
-                lblNbComptes.setText(String.valueOf(rs.getInt("nb_comptes")));
-            }
-
+            sql = "SELECT COUNT(*) FROM comptes";
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            int nbComptes = rs.getInt(1);
+            
             // Solde total
-            String sqlSolde = "SELECT SUM(solde) AS solde_total FROM comptes";
-            rs = stmt.executeQuery(sqlSolde);
-            if (rs.next()) {
-                lblSoldeTotal.setText(rs.getBigDecimal("solde_total") != null ? rs.getBigDecimal("solde_total").toString() + " DH" : "0 DH");
-            }
+            sql = "SELECT SUM(solde) FROM comptes";
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            double soldeTotal = rs.getDouble(1);
+            
+            JTextArea statsArea = new JTextArea();
+            statsArea.append("Statistiques de la banque:\n\n");
+            statsArea.append("Nombre de clients: " + nbClients + "\n");
+            statsArea.append("Nombre de comptes: " + nbComptes + "\n");
+            statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
+            statsArea.setEditable(false);
+            
+            // Modification End
+            
+            
+            
+            // Nombre de clients
+//            String sqlClients = "SELECT COUNT(*) AS nb_clients FROM utilisateurs WHERE type = 'client'";
+//            Statement stmt = conn.createStatement();
+//            ResultSet rs = stmt.executeQuery(sqlClients);
+//            if (rs.next()) {
+//                lblNbClients.setText(String.valueOf(rs.getInt("nb_clients")));
+//            }
+//
+//            // Nombre d'employés
+//            String sqlEmployes = "SELECT COUNT(*) AS nb_employes FROM utilisateurs WHERE type = 'employe'";
+//            rs = stmt.executeQuery(sqlEmployes);
+//            if (rs.next()) {
+//                lblNbEmployes.setText(String.valueOf(rs.getInt("nb_employes")));
+//            }
+//
+//            // Nombre de comptes
+//            String sqlComptes = "SELECT COUNT(*) AS nb_comptes FROM comptes";
+//            rs = stmt.executeQuery(sqlComptes);
+//            if (rs.next()) {
+//                lblNbComptes.setText(String.valueOf(rs.getInt("nb_comptes")));
+//            }
+//
+//            // Solde total
+//            String sqlSolde = "SELECT SUM(solde) AS solde_total FROM comptes";
+//            rs = stmt.executeQuery(sqlSolde);
+//            if (rs.next()) {
+//                lblSoldeTotal.setText(rs.getBigDecimal("solde_total") != null ? rs.getBigDecimal("solde_total").toString() + " DH" : "0 DH");
+            
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
         }
