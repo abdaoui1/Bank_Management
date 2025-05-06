@@ -1,6 +1,7 @@
 package pack1;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.sql.Connection;
@@ -21,15 +22,25 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import javax.swing.table.DefaultTableModel;
 
 class DirecteurInterface extends EmployeInterface {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    
+    
     private DefaultTableModel empTableModel;
     private JTable empTable;
     private JLabel lblNbClients, lblNbEmployes, lblNbComptes, lblSoldeTotal;
 
-    public DirecteurInterface(int directeurId) {
+    public DirecteurInterface(int directeurId) throws UnsupportedLookAndFeelException {
         super(directeurId);
+        UIManager.setLookAndFeel( new NimbusLookAndFeel() );
         setTitle("Espace Directeur");
 
         JTabbedPane tabbedPane = (JTabbedPane) getContentPane().getComponent(0);
@@ -43,17 +54,17 @@ class DirecteurInterface extends EmployeInterface {
 
         empPanel.add(empScrollPane, BorderLayout.CENTER);
 
-        JPanel empButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel empButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER ,15 ,10));
 
-        JButton btnAddEmployee = new JButton("Ajouter un employé");
+        JButton btnAddEmployee = createStyledButton("Ajouter un employé", new Color(220, 255, 220));
         btnAddEmployee.addActionListener(e -> ajouterEmploye());
         empButtonPanel.add(btnAddEmployee);
 
-        JButton btnEditEmployee = new JButton("Modifier un employé");
+        JButton btnEditEmployee = createStyledButton("Modifier employé", new Color(220, 230, 255));
         btnEditEmployee.addActionListener(e -> modifierEmploye());
         empButtonPanel.add(btnEditEmployee);
 
-        JButton btnDeleteEmployee = new JButton("Supprimer un employé");
+        JButton btnDeleteEmployee = createStyledButton("Supprimer employé", new Color(255, 220, 220));
         btnDeleteEmployee.addActionListener(e -> supprimerEmploye());
         empButtonPanel.add(btnDeleteEmployee);
 
@@ -82,6 +93,12 @@ class DirecteurInterface extends EmployeInterface {
             rs = stmt.executeQuery(sql);
             rs.next();
             int nbComptes = rs.getInt(1);
+
+            // Nombre de employe
+            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe' ";
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            int nbEmployes = rs.getInt(1);
             
             // Solde total
             sql = "SELECT SUM(solde) FROM comptes";
@@ -93,6 +110,7 @@ class DirecteurInterface extends EmployeInterface {
             statsArea.append("Statistiques de la banque:\n\n");
             statsArea.append("Nombre de clients: " + nbClients + "\n");
             statsArea.append("Nombre de comptes: " + nbComptes + "\n");
+            statsArea.append("Nombre de employes: " + nbEmployes + "\n");
             statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
             statsArea.setEditable(false);
             
@@ -151,7 +169,7 @@ class DirecteurInterface extends EmployeInterface {
         int option = JOptionPane.showConfirmDialog(this, panel, "Ajouter un employé", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-                String sql = "INSERT INTO utilisateurs (nom, prenom, cin, login, password, type) VALUES (?, ?, ?, ?, ?, 'employe')";
+                String sql = "INSERT INTO utilisateurs (nom, prenom, cin, login, password, type) VALUES (?, ?, ?, ?, SHA2(?,256) , 'employe')";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, nomField.getText());
                 pst.setString(2, prenomField.getText());
@@ -199,7 +217,7 @@ class DirecteurInterface extends EmployeInterface {
         int option = JOptionPane.showConfirmDialog(this, panel, "Modifier un employé", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-                String sql = "UPDATE utilisateurs SET nom = ?, prenom = ?, cin = ?, login = ?, password = ? WHERE id = ? AND type = 'employe'";
+                String sql = "UPDATE utilisateurs SET nom = ?, prenom = ?, cin = ?, login = ?, password =SHA2(? ,256) WHERE id = ? AND type = 'employe'";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, nomField.getText());
                 pst.setString(2, prenomField.getText());

@@ -31,28 +31,31 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 class EmployeInterface extends JFrame {
-    
-    
-    
-   
-    private static final long serialVersionUID = -3930344573291586087L;
-    private Connection conn;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Connection conn;
     private String sql2;
     private Color primaryColor = new Color(0, 102, 153); // Bleu professionnel
     private Color secondaryColor = new Color(245, 245, 245); // Gris clair
     private Color buttonTextColor = new Color(0, 70, 140); // Bleu foncé pour le texte
     private JTabbedPane tabbedPane;
-    public EmployeInterface(int employeId) {
+
+    public EmployeInterface(int employeId) throws UnsupportedLookAndFeelException {
+        UIManager.setLookAndFeel( new NimbusLookAndFeel() );
         setTitle("Espace Employé - Système Bancaire");
         setSize(900, 650);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         
         try {
             try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+               
                 UIManager.put("TabbedPane.selected", primaryColor);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -154,7 +157,7 @@ class EmployeInterface extends JFrame {
         comptesPanel.add(comptesScroll, BorderLayout.CENTER);
         comptesPanel.add(compteButtonsPanel, BorderLayout.SOUTH);
         
-        tabbedPane.addTab("Gestion Comptes", new ImageIcon("/imgs/account_icon.png") , comptesPanel, "Gérer les comptes bancaires");
+        tabbedPane.addTab("Gestion Comptes", new ImageIcon("account_icon.png"), comptesPanel, "Gérer les comptes bancaires");
         
         // Action du bouton supprimer compte
         deleteCompteBtn.addActionListener(e -> deleteCompte(comptesTable));
@@ -188,7 +191,7 @@ class EmployeInterface extends JFrame {
                 
                 // 1. Supprimer d'abord les transactions liées aux comptes du client
                 String deleteTransactionsSql = "DELETE t FROM transactions t " +
-                                            "JOIN comptes c ON t.id_compte_source = c.id " +
+                                            "JOIN comptes c ON t.id_compte_source = c.id OR t.id_compte_destination = c.id " +
                                             "WHERE c.id_client = ?";
                 PreparedStatement deleteTransactionsStmt = conn.prepareStatement(deleteTransactionsSql);
                 deleteTransactionsStmt.setInt(1, idClientToDelete);
@@ -240,65 +243,72 @@ class EmployeInterface extends JFrame {
     private void deleteCompte(JTable comptesTable) {
         int selectedRow = comptesTable.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Sélectionnez un compte à supprimer", "Erreur", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, 
+                "Veuillez sélectionner un compte à supprimer", 
+                "Aucune sélection", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        String numeroCompte = (String) comptesTable.getValueAt(selectedRow, 1);
-        String typeCompte = (String) comptesTable.getValueAt(selectedRow, 2);
-        double solde = (Double) comptesTable.getValueAt(selectedRow, 3);
-        String clientNom = (String) comptesTable.getValueAt(selectedRow, 4);
-        String clientPrenom = (String) comptesTable.getValueAt(selectedRow, 5);
-        
+
+        // Récupération des données du compte sélectionné
+        int idCompte = Integer.parseInt(comptesTable.getValueAt(selectedRow, 0).toString());
+        String numeroCompte = comptesTable.getValueAt(selectedRow, 1).toString();
+        String typeCompte = comptesTable.getValueAt(selectedRow, 2).toString();
+        double solde = Double.parseDouble(comptesTable.getValueAt(selectedRow, 3).toString());
+        String clientNom = comptesTable.getValueAt(selectedRow, 4).toString();
+        String clientPrenom = comptesTable.getValueAt(selectedRow, 5).toString();
+
+        // Confirmation de suppression
         int confirm = JOptionPane.showConfirmDialog(this, 
             "Êtes-vous sûr de vouloir supprimer le compte " + typeCompte + 
             " n°" + numeroCompte + " de " + clientPrenom + " " + clientNom + 
-            " (solde: " + solde + " DH)?",
+            " (solde: " + solde + " DH)?\n" +
+            "Toutes les transactions associées seront également supprimées.",
             "Confirmation de suppression", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        
+
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                conn.setAutoCommit(false);
+                conn.setAutoCommit(false); // Démarrer une transaction
                 
-                // 1. Supprimer d'abord les transactions liées au compte
-                String deleteTransactionsSql = "DELETE FROM transactions WHERE id_compte_source = " +
-                                            "(SELECT id FROM comptes WHERE numero_compte = ?)";
+                // 1. Supprimer les transactions liées au compte (comme source ou destination)
+                String deleteTransactionsSql = "DELETE FROM transactions " +
+                                           "WHERE id_compte_source = ? OR id_compte_destination = ?";
                 PreparedStatement deleteTransactionsStmt = conn.prepareStatement(deleteTransactionsSql);
-                deleteTransactionsStmt.setString(1, numeroCompte);
+                deleteTransactionsStmt.setInt(1, idCompte);
+                deleteTransactionsStmt.setInt(2, idCompte);
                 deleteTransactionsStmt.executeUpdate();
-                
-                // 2. Ensuite supprimer le compte
-                String deleteCompteSql = "DELETE FROM comptes WHERE numero_compte = ?";
+
+                // 2. Supprimer le compte
+                String deleteCompteSql = "DELETE FROM comptes WHERE id = ?";
                 PreparedStatement deleteCompteStmt = conn.prepareStatement(deleteCompteSql);
-                deleteCompteStmt.setString(1, numeroCompte);
-                int rowsAffected = deleteCompteStmt.executeUpdate();
-                
-                if (rowsAffected > 0) {
-                    conn.commit();
+                deleteCompteStmt.setInt(1, idCompte);
+                int rowsDeleted = deleteCompteStmt.executeUpdate();
+
+                if (rowsDeleted > 0) {
+                    conn.commit(); // Valider la transaction
                     JOptionPane.showMessageDialog(this, 
-                        "Compte supprimé avec succès!", 
+                        "Compte et transactions associées supprimés avec succès!", 
                         "Succès", JOptionPane.INFORMATION_MESSAGE);
                     
-                    // Rafraîchir la table des comptes
+                    // Rafraîchir les tables
                     refreshTables(getClientsTable(), comptesTable);
                 } else {
-                    conn.rollback();
+                    conn.rollback(); // Annuler la transaction
                     JOptionPane.showMessageDialog(this, 
-                        "Erreur lors de la suppression du compte", 
+                        "Aucun compte n'a été supprimé", 
                         "Erreur", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException ex) {
                 try {
-                    conn.rollback();
+                    conn.rollback(); // En cas d'erreur, annuler la transaction
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
                 JOptionPane.showMessageDialog(this, 
-                    "Erreur: " + ex.getMessage(), 
-                    "Erreur", JOptionPane.ERROR_MESSAGE);
+                    "Erreur lors de la suppression: " + ex.getMessage(), 
+                    "Erreur SQL", JOptionPane.ERROR_MESSAGE);
             } finally {
                 try {
-                    conn.setAutoCommit(true);
+                    conn.setAutoCommit(true); // Rétablir le mode auto-commit
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -352,20 +362,23 @@ class EmployeInterface extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 sql2 = "INSERT INTO utilisateurs (type, nom, prenom, cin, login, password) " +
-                      "VALUES ('client', ?, ?, ?, ?, ?)";
+                      "VALUES ('client', ?, ?, ?, ?, SHA2(? , 256) )";
+                
+               
+             
+                
                 PreparedStatement pstmt = conn.prepareStatement(sql2);
                 pstmt.setString(1, nomField.getText());
                 pstmt.setString(2, prenomField.getText());
                 pstmt.setString(3, cinField.getText());
                 pstmt.setString(4, loginField.getText());
-                pstmt.setString(5, new String(passwordField.getPassword()));
+                pstmt.setString(5, new String(passwordField.getPassword()) );
                 
                 pstmt.executeUpdate();
                 JOptionPane.showMessageDialog(this, "Client ajouté avec succès!", 
                     "Succès", JOptionPane.INFORMATION_MESSAGE);
                 
                 refreshTables(clientsTable, getComptesTable());
-                
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Erreur: " + ex.getMessage(), 
                                             "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -439,7 +452,7 @@ class EmployeInterface extends JFrame {
         }
     }
     
-    private JButton createStyledButton(String text, Color bgColor) {
+    protected JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setBackground(bgColor);
         button.setForeground(buttonTextColor);

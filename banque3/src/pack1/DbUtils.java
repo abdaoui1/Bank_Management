@@ -1,9 +1,6 @@
 package pack1;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.sql.*;
-import java.text.DecimalFormat;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 class DbUtils {
     public static javax.swing.table.TableModel resultSetToTableModel(ResultSet rs) throws SQLException {
@@ -26,6 +23,9 @@ class DbUtils {
         
         return new javax.swing.table.DefaultTableModel(
             data.toArray(new Object[0][]), columnNames) {
+               
+                private static final long serialVersionUID = 9045759079655855549L;
+
                 @Override
                 public boolean isCellEditable(int row, int column) {
                     return false;

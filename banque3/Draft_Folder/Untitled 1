@@ -1,0 +1,15 @@
+//        // === Logo ===
+//        JLabel logoLabel = new JLabel();
+//        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+//        try
+//        {
+//            ImageIcon icon = new ImageIcon(getClass().getResource("/imgs/logo.png"));
+//            Image img = icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH);
+//            logoLabel.setIcon(new ImageIcon(img));
+//        } catch (Exception e)
+//        {
+//            logoLabel.setText("Logo manquant");
+//            logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
+//        }
+//
+//        mainPanel.add(logoLabel, BorderLayout.NORTH);

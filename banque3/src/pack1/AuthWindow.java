@@ -1,4 +1,5 @@
 package pack1;
+
 import javax.swing.*;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
@@ -7,9 +8,14 @@ import java.awt.event.*;
 import java.sql.*;
 
 public class AuthWindow extends JFrame {
-    public AuthWindow(String userType) {
+
+    private static final long serialVersionUID = 1L;
+
+    public AuthWindow(String userType)
+    {
+
         setTitle("Connexion - " + capitalize(userType));
-        setSize(500, 600); //450
+        setSize(500, 600); // 450
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -18,28 +24,17 @@ public class AuthWindow extends JFrame {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setLayout(new BorderLayout());
 
-        // === Logo ===
-        JLabel logoLabel = new JLabel();
-        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        try {
-            ImageIcon icon = new ImageIcon(getClass().getResource("/imgs/logo.png"));
-            Image img = icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH);
-            logoLabel.setIcon(new ImageIcon(img));
-        } catch (Exception e) {
-            logoLabel.setText("Logo manquant");
-            logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        }
 
-        mainPanel.add(logoLabel, BorderLayout.NORTH);
 
         // === Centre ===
         JPanel formPanel = new JPanel(new GridLayout(5, 1, 10, 10));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
-        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(150, 50, 30, 50));
+        formPanel.setBackground(Color.white);
 
         JTextField loginField = new JTextField();
         loginField.setBorder(BorderFactory.createTitledBorder("Nom d'utilisateur"));
-
+        
+     
         // === Champ mot de passe avec œil intégré ===
         JPasswordField passField = new JPasswordField();
         passField.setEchoChar('●');
@@ -55,10 +50,12 @@ public class AuthWindow extends JFrame {
 
         eyeBtn.addActionListener(new ActionListener() {
             private boolean visible = false;
+
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e)
+            {
                 visible = !visible;
-                passField.setEchoChar(visible ? (char) 0 : '.');
+                passField.setEchoChar(visible ? (char) 0 : '●');
                 eyeBtn.setText(visible ? "🙈" : "👁");
             }
         });
@@ -78,20 +75,139 @@ public class AuthWindow extends JFrame {
 
         formPanel.add(loginField);
         formPanel.add(passPanel);
-        formPanel.add(Box.createVerticalStrut(10));
+        //formPanel.add(Box.createVerticalStrut(1));
         formPanel.add(authBtn);
 
         mainPanel.add(formPanel, BorderLayout.CENTER);
         add(mainPanel);
 
         // === Action du bouton connexion ===
+        
+//     // Button press effect
+//        authBtn.getModel().addChangeListener(e -> {
+//            ButtonModel model = (ButtonModel) e.getSource();
+//            if (model.isPressed()) {
+//                authBtn.setBackground(Color.pink);
+//            } 
+////            else if (model.isRollover()) {
+////                authBtn.setBackground(hoverColor);
+////            } else {
+////                authBtn.setBackground(defaultColor);
+////            }
+//        });
+        
+        
+        authBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+                authBtn.setBackground(Color.blue); // Highlight on hover
+                authBtn.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Change cursor
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+                authBtn.setBackground(new Color(30, 144, 255)); // Reset
+                authBtn.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+
+        authBtn.addFocusListener(new FocusListener() {
+            
+            @Override
+            public void focusLost(FocusEvent e)
+            {
+                //authBtn.setBackground( Color.black ); // Reset
+                authBtn.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                
+            }
+            
+            @Override
+            public void focusGained(FocusEvent e)
+            {
+                authBtn.setBackground( Color.blue); // Reset
+                authBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                
+            }
+        });
+        
+        authBtn.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e)
+            {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e)
+            {
+                
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e)
+            {
+                String login = loginField.getText();
+                String password = new String(passField.getPassword());
+
+                try
+                {
+                    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "");
+
+                    String sql = "SELECT * FROM utilisateurs WHERE login = ? AND password = ? AND type = ?";
+                    PreparedStatement stmt = conn.prepareStatement(sql);
+                    stmt.setString(1, login);
+                    stmt.setString(2, password);
+                    stmt.setString(3, userType);
+
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next())
+                    {
+                        JOptionPane.showMessageDialog(null, "Bienvenue " + login + " !");
+                        dispose();
+                        switch (userType)
+                        {
+                            case "client":
+                                new ClientInterface(rs.getInt("id")).setVisible(true);
+                                break;
+                            case "employe":
+                                new EmployeInterface(rs.getInt("id")).setVisible(true);
+                                break;
+                            case "directeur":
+                                new DirecteurInterface(rs.getInt("id")).setVisible(true);
+                                break;
+                        }
+                    } else
+                    {
+                        JOptionPane.showMessageDialog(null, "Identifiants incorrects", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                    conn.close();
+                } catch (SQLException ex)
+                {
+                    JOptionPane.showMessageDialog(null, "Erreur de connexion : " + ex.getMessage(), "Erreur",
+                            JOptionPane.ERROR_MESSAGE);
+                } catch (UnsupportedLookAndFeelException e1)
+                {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+            
+        });
+
         authBtn.addActionListener(e -> {
+
             String login = loginField.getText();
             String password = new String(passField.getPassword());
 
-            try {
-                Connection conn = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/quarta", "root", "");
+            try
+            {
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "");
 
                 String sql = "SELECT * FROM utilisateurs WHERE login = ? AND password = ? AND type = ?";
                 PreparedStatement stmt = conn.prepareStatement(sql);
@@ -100,10 +216,12 @@ public class AuthWindow extends JFrame {
                 stmt.setString(3, userType);
 
                 ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    JOptionPane.showMessageDialog(this, "Bienvenue " + login + " !");
+                if (rs.next())
+                {
+                    JOptionPane.showMessageDialog(null, "Bienvenue " + login + " !");
                     dispose();
-                    switch (userType) {
+                    switch (userType)
+                    {
                         case "client":
                             new ClientInterface(rs.getInt("id")).setVisible(true);
                             break;
@@ -114,26 +232,34 @@ public class AuthWindow extends JFrame {
                             new DirecteurInterface(rs.getInt("id")).setVisible(true);
                             break;
                     }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Identifiants incorrects",
-                            "Erreur", JOptionPane.ERROR_MESSAGE);
+                } else
+                {
+                    JOptionPane.showMessageDialog(null, "Identifiants incorrects", "Erreur", JOptionPane.ERROR_MESSAGE);
                 }
 
                 conn.close();
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Erreur de connexion : " + ex.getMessage(),
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException ex)
+            {
+                JOptionPane.showMessageDialog(null, "Erreur de connexion : " + ex.getMessage(), "Erreur",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (UnsupportedLookAndFeelException e1)
+            {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
             }
         });
+
     }
 
-    private String capitalize(String s) {
+    private String capitalize(String s)
+    {
         return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 
-    public static void main(String[] args) throws UnsupportedLookAndFeelException {
-        UIManager.setLookAndFeel( new NimbusLookAndFeel());
-        
+    public static void main(String[] args) throws UnsupportedLookAndFeelException
+    {
+        UIManager.setLookAndFeel(new NimbusLookAndFeel() );
+
         SwingUtilities.invokeLater(() -> new AuthWindow("client").setVisible(true));
     }
 }

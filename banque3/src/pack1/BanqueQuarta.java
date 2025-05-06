@@ -14,21 +14,28 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 class BanqueQuarta extends JFrame {
+    
+    private static final long serialVersionUID = 1L;
+
     public BanqueQuarta() {
         setTitle("Banque Quarta");
         setSize(800, 400); // Taille modifiée pour une interface plus large
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
         // === Utilisation d'un BorderLayout pour diviser la fenêtre ===
         setLayout(new BorderLayout());
-
+        //leftPanel.setBackground(Color.WHITE);
         // === Section gauche : boutons d'accès ===
         JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(new Color(240, 240, 240)); // Couleur grise claire
+        leftPanel.setBackground(new Color(255,255,255)); // Couleur grise claire
+        
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS)); // Disposition verticale pour les boutons
 
         // Titre des boutons
@@ -37,9 +44,9 @@ class BanqueQuarta extends JFrame {
         title.setForeground(new Color(50, 50, 50)); // Gris foncé
         
         // Espaces entre les boutons
-        leftPanel.add(Box.createVerticalStrut(20));
-        leftPanel.add(title);
-        leftPanel.add(Box.createVerticalStrut(30));
+        leftPanel.add(Box.createVerticalStrut(80));
+        //leftPanel.add(title);
+        
 
         // Création des boutons
         JButton clientBtn = new JButton("Espace Client");
@@ -72,8 +79,8 @@ class BanqueQuarta extends JFrame {
         JLabel logoLabel = new JLabel();
         logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
         try {
-            ImageIcon icon = new ImageIcon(getClass().getResource("/imgs/logo.png")); // Remplacer "/logo.png" par votre image
-            Image img = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+            ImageIcon icon = new ImageIcon(getClass().getResource("/imgs/v2.png")); // Remplacer "/logo1.png" par votre image
+            Image img = icon.getImage().getScaledInstance(450, 300, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(img));
         } catch (Exception e) {
             logoLabel.setText("Logo manquant");
@@ -98,13 +105,16 @@ class BanqueQuarta extends JFrame {
     private void styleButton(JButton button, Color color) {
         button.setBackground(color);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 16));
+//        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 18));
         button.setFocusPainted(false);
         button.setPreferredSize(new Dimension(250, 50)); // Taille des boutons (largeur et hauteur identiques)
         button.setMaximumSize(new Dimension(250, 50)); // S'assurer que la taille maximale est identique
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnsupportedLookAndFeelException {
+        UIManager.setLookAndFeel( new NimbusLookAndFeel() );
+        
         SwingUtilities.invokeLater(() -> new BanqueQuarta().setVisible(true));
     }
 }
