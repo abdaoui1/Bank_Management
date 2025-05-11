@@ -169,17 +169,25 @@ class DirecteurInterface extends EmployeInterface {
         int option = JOptionPane.showConfirmDialog(this, panel, "Ajouter un employé", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-                String sql = "INSERT INTO utilisateurs (nom, prenom, cin, login, password, type) VALUES (?, ?, ?, ?, SHA2(?,256) , 'employe')";
+                String sql = "INSERT INTO utilisateurs (nom, prenom, cin, login, password, type) VALUES (?, ?, ?, ?, ? , 'employe')";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, nomField.getText());
                 pst.setString(2, prenomField.getText());
                 pst.setString(3, cinField.getText());
                 pst.setString(4, loginField.getText());
-                pst.setString(5, new String(passwordField.getPassword()));
+                
+             // Modification START 
+                // Hashing the password : 
+                String password = new String ( passwordField.getPassword() );
+                String hashedPassword = PasswordUtils.hashPassword( password );
+                pst.setString(5, hashedPassword );
+                
+                // Old line  : pst.setString(5, new String( passwordField.getPassword() )  );
+                // Modification END 
                 pst.executeUpdate();
 
-                chargerEmployes();
-                chargerStatistiques();
+                //chargerEmployes();
+                //chargerStatistiques();
                 JOptionPane.showMessageDialog(this, "Employé ajouté avec succès !");
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -217,7 +225,7 @@ class DirecteurInterface extends EmployeInterface {
         int option = JOptionPane.showConfirmDialog(this, panel, "Modifier un employé", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-                String sql = "UPDATE utilisateurs SET nom = ?, prenom = ?, cin = ?, login = ?, password =SHA2(? ,256) WHERE id = ? AND type = 'employe'";
+                String sql = "UPDATE utilisateurs SET nom = ?, prenom = ?, cin = ?, login = ?, password =? WHERE id = ? AND type = 'employe'";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, nomField.getText());
                 pst.setString(2, prenomField.getText());

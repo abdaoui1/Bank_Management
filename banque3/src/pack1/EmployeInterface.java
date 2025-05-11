@@ -48,7 +48,7 @@ class EmployeInterface extends JFrame {
 
     public EmployeInterface(int employeId) throws UnsupportedLookAndFeelException {
         UIManager.setLookAndFeel( new NimbusLookAndFeel() );
-        setTitle("Espace Employé - Système Bancaire");
+        setTitle("Espace Employé ");
         setSize(900, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -57,6 +57,7 @@ class EmployeInterface extends JFrame {
             try {
                
                 UIManager.put("TabbedPane.selected", primaryColor);
+                // This tells Swing to change the color of the selected tab in a JTabbedPane
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -362,7 +363,7 @@ class EmployeInterface extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 sql2 = "INSERT INTO utilisateurs (type, nom, prenom, cin, login, password) " +
-                      "VALUES ('client', ?, ?, ?, ?, SHA2(? , 256) )";
+                      "VALUES ('client', ?, ?, ?, ?, ? )";
                 
                
              
@@ -372,7 +373,14 @@ class EmployeInterface extends JFrame {
                 pstmt.setString(2, prenomField.getText());
                 pstmt.setString(3, cinField.getText());
                 pstmt.setString(4, loginField.getText());
-                pstmt.setString(5, new String(passwordField.getPassword()) );
+                
+                // Modification START 
+                // Hashing the password : 
+                String password = new String ( passwordField.getPassword() );
+                String hashedPassword = PasswordUtils.hashPassword( password );
+                pstmt.setString(5, hashedPassword );
+                // Modification END 
+                
                 
                 pstmt.executeUpdate();
                 JOptionPane.showMessageDialog(this, "Client ajouté avec succès!", 

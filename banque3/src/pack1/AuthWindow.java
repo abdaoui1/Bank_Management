@@ -153,15 +153,16 @@ public class AuthWindow extends JFrame {
             {
                 String login = loginField.getText();
                 String password = new String(passField.getPassword());
+                String hashedPassword = PasswordUtils.hashPassword(password);
 
                 try
                 {
                     Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "");
 
-                    String sql = "SELECT * FROM utilisateurs WHERE login = ? AND password = ? AND type = ?";
+                    String sql = "SELECT * FROM utilisateurs WHERE login = ? AND password = ?  AND type = ?";
                     PreparedStatement stmt = conn.prepareStatement(sql);
                     stmt.setString(1, login);
-                    stmt.setString(2, password);
+                    stmt.setString(2, hashedPassword);
                     stmt.setString(3, userType);
 
                     ResultSet rs = stmt.executeQuery();
@@ -204,6 +205,7 @@ public class AuthWindow extends JFrame {
 
             String login = loginField.getText();
             String password = new String(passField.getPassword());
+            String hashedPassword = PasswordUtils.hashPassword(password);
 
             try
             {
@@ -212,7 +214,7 @@ public class AuthWindow extends JFrame {
                 String sql = "SELECT * FROM utilisateurs WHERE login = ? AND password = ? AND type = ?";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setString(1, login);
-                stmt.setString(2, password);
+                stmt.setString(2, hashedPassword);
                 stmt.setString(3, userType);
 
                 ResultSet rs = stmt.executeQuery();

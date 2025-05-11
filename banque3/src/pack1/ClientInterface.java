@@ -129,12 +129,12 @@ class ClientInterface extends JFrame {
         operationsPanel.add(consulterBtn);
         operationsPanel.add(verserBtn);
         operationsPanel.add(retirerBtn);
+        operationsPanel.add(imprimerBtn);
         if (typeCompte.equals("courant")) {
             operationsPanel.add(transfertBtn);
         } else {
             operationsPanel.add(new JLabel(""));
         }
-        operationsPanel.add(imprimerBtn);
         
         // Historique des transactions
         sql = "SELECT * FROM transactions WHERE id_compte_source = ? ORDER BY date_transaction DESC LIMIT 5";
