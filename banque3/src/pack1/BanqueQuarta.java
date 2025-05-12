@@ -13,10 +13,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 class BanqueQuarta extends JFrame {
     
@@ -112,9 +108,5 @@ class BanqueQuarta extends JFrame {
         button.setMaximumSize(new Dimension(250, 50)); // S'assurer que la taille maximale est identique
     }
 
-    public static void main(String[] args) throws UnsupportedLookAndFeelException {
-        UIManager.setLookAndFeel( new NimbusLookAndFeel() );
-        
-        SwingUtilities.invokeLater(() -> new BanqueQuarta().setVisible(true));
-    }
+
 }

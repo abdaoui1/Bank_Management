@@ -186,7 +186,7 @@ class DirecteurInterface extends EmployeInterface {
                 // Modification END 
                 pst.executeUpdate();
 
-                //chargerEmployes();
+                chargerEmployes();
                 //chargerStatistiques();
                 JOptionPane.showMessageDialog(this, "Employé ajouté avec succès !");
             } catch (SQLException e) {
@@ -291,9 +291,16 @@ class DirecteurInterface extends EmployeInterface {
         }
     }
 
+    
+    // Under development
     private void chargerStatistiques() {
+        
+        JPanel statsPanel = new JPanel(new BorderLayout());
+        
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-//            Modification Begin 
+//            
+
+            
             // Nombre de clients
             String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
             Statement stmt = conn.createStatement();
@@ -306,6 +313,12 @@ class DirecteurInterface extends EmployeInterface {
             rs = stmt.executeQuery(sql);
             rs.next();
             int nbComptes = rs.getInt(1);
+
+            // Nombre de employe
+            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe' ";
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            int nbEmployes = rs.getInt(1);
             
             // Solde total
             sql = "SELECT SUM(solde) FROM comptes";
@@ -317,9 +330,47 @@ class DirecteurInterface extends EmployeInterface {
             statsArea.append("Statistiques de la banque:\n\n");
             statsArea.append("Nombre de clients: " + nbClients + "\n");
             statsArea.append("Nombre de comptes: " + nbComptes + "\n");
+            statsArea.append("Nombre de employes: " + nbEmployes + "\n");
             statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
             statsArea.setEditable(false);
             
+            statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            //Modification Begin 
+            // Nombre de clients
+//            String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
+//            Statement stmt = conn.createStatement();
+//            ResultSet rs = stmt.executeQuery(sql);
+//            rs.next();
+//            int nbClients = rs.getInt(1);
+//            
+//            // Nombre de comptes
+//            sql = "SELECT COUNT(*) FROM comptes";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            int nbComptes = rs.getInt(1);
+//            
+//            // Solde total
+//            sql = "SELECT SUM(solde) FROM comptes";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            double soldeTotal = rs.getDouble(1);
+//            
+//            JTextArea statsArea = new JTextArea();
+//            statsArea.append("Statistiques de la banque:\n\n");
+//            statsArea.append("Nombre de clients: " + nbClients + "\n");
+//            statsArea.append("Nombre de comptes: " + nbComptes + "\n");
+//            statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
+//            statsArea.setEditable(false);
+//            
             // Modification End
             
             

@@ -23,24 +23,45 @@ public class Payment {
             
 
             // Tests : 
+            boolean hasAccount = false;
+            boolean enoughSolde = false; 
+            
             // 1) Verifie the account 
+            
             String sql1 = "SELECT * from comptes WHERE numero_compte = " +  idCompte+";";
             Statement stmt1 = conn.createStatement();
             ResultSet rs1 = stmt1.executeQuery(sql1);
+            System.out.println("C'est bon");
+            String serveurIP = "192.168.164.254";
+            int port = 5000;
+            
+            Socket socket = new Socket( serveurIP, port);
+            PrintWriter out = new PrintWriter(socket.getOutputStream() , true );
             if ( rs1.next() )
             {
-                System.out.println("C'est bon");
-                String serveurIP = "192.168.164.254";
-                int port = 5000;
-                
-                Socket socket = new Socket( serveurIP, port);
-                PrintWriter out = new PrintWriter(socket.getOutputStream() , true );
-                
-                out.println(1);
+               hasAccount = true;
+               
+               String sql2 = "SELECT solde from comptes WHERE numero_compte = " +  idCompte+";";
+               Statement stmt2 = conn.createStatement();
+               ResultSet rs2 = stmt2.executeQuery(sql2);
+               if ( rs2.next() ) {
+                   double solde = rs2.getDouble("solde");
+                   if ( solde > montant)
+                   enoughSolde = true;
+               } 
+               
             }
-            // Verifie the solde 
             
-//            
+            // Envoie du code : 
+            if ( hasAccount && enoughSolde ) out.print(1);
+            else {
+                if (hasAccount && !enoughSolde ) out.println(2);
+               else if ( !hasAccount)  out.print(3);
+                
+            }
+           
+            
+           
             
             String sql = "UPDATE comptes SET solde=solde-? WHERE numero_compte =? AND type_compte='courant';";
             PreparedStatement pst = conn.prepareStatement(sql);

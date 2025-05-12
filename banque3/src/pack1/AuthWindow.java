@@ -1,11 +1,33 @@
 package pack1;
 
-import javax.swing.*;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.sql.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.UnsupportedLookAndFeelException;
 
 public class AuthWindow extends JFrame {
 
@@ -258,10 +280,5 @@ public class AuthWindow extends JFrame {
         return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 
-    public static void main(String[] args) throws UnsupportedLookAndFeelException
-    {
-        UIManager.setLookAndFeel(new NimbusLookAndFeel() );
 
-        SwingUtilities.invokeLater(() -> new AuthWindow("client").setVisible(true));
-    }
 }
