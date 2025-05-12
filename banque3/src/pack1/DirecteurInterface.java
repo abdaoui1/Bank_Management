@@ -3,6 +3,7 @@ package pack1;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -36,7 +37,10 @@ class DirecteurInterface extends EmployeInterface {
     
     private DefaultTableModel empTableModel;
     private JTable empTable;
-    private JLabel lblNbClients, lblNbEmployes, lblNbComptes, lblSoldeTotal;
+    private int nbClients, nbEmployes, nbComptes;
+    private double soldeTotal;
+    private JPanel statsPanel;
+    private JTextArea statsArea;
 
     public DirecteurInterface(int directeurId) throws UnsupportedLookAndFeelException {
         super(directeurId);
@@ -74,55 +78,67 @@ class DirecteurInterface extends EmployeInterface {
 
         // Onglet Statistiques
      // Onglet Statistiques
-        JPanel statsPanel = new JPanel(new BorderLayout());
-        
-        // Exemple de statistiques simples
-        try {
-            Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/quarta", "root", "");
-            
-            // Nombre de clients
-            String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-            rs.next();
-            int nbClients = rs.getInt(1);
-            
-            // Nombre de comptes
-            sql = "SELECT COUNT(*) FROM comptes";
-            rs = stmt.executeQuery(sql);
-            rs.next();
-            int nbComptes = rs.getInt(1);
+        statsPanel = new JPanel(new BorderLayout());
+        statsArea = new JTextArea();
+        statsArea.setEditable(false);
+        statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
 
-            // Nombre de employe
-            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe' ";
-            rs = stmt.executeQuery(sql);
-            rs.next();
-            int nbEmployes = rs.getInt(1);
-            
-            // Solde total
-            sql = "SELECT SUM(solde) FROM comptes";
-            rs = stmt.executeQuery(sql);
-            rs.next();
-            double soldeTotal = rs.getDouble(1);
-            
-            JTextArea statsArea = new JTextArea();
-            statsArea.append("Statistiques de la banque:\n\n");
-            statsArea.append("Nombre de clients: " + nbClients + "\n");
-            statsArea.append("Nombre de comptes: " + nbComptes + "\n");
-            statsArea.append("Nombre de employes: " + nbEmployes + "\n");
-            statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
-            statsArea.setEditable(false);
-            
-            statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
-            chargerEmployes();
-            chargerStatistiques();
-            tabbedPane.addTab("Statistiques", statsPanel);
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), 
-                                        "Erreur", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+        tabbedPane.addTab("Statistiques", statsPanel);
+        chargerEmployes();
+        chargerStatistiques(); // Appel initial pour charger les données
+        
+    } 
+        
+        // Old One 
+//        JPanel statsPanel = new JPanel(new BorderLayout());
+//        
+//        // Exemple de statistiques simples
+//        try {
+//            Connection conn = DriverManager.getConnection(
+//                "jdbc:mysql://localhost:3306/quarta", "root", "");
+//            
+//            // Nombre de clients
+//            String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
+//            Statement stmt = conn.createStatement();
+//            ResultSet rs = stmt.executeQuery(sql);
+//            rs.next();
+//            nbClients = rs.getInt(1);
+//            
+//            // Nombre de comptes
+//            sql = "SELECT COUNT(*) FROM comptes";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            nbComptes = rs.getInt(1);
+//
+//            // Nombre de employe
+//            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe' ";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            nbEmployes = rs.getInt(1);
+//            
+//            // Solde total
+//            sql = "SELECT SUM(solde) FROM comptes";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            soldeTotal = rs.getDouble(1);
+//            
+//            JTextArea statsArea = new JTextArea();
+//            statsArea.append("Statistiques de la banque:\n\n");
+//            statsArea.append("Nombre de clients: " + nbClients + "\n");
+//            statsArea.append("Nombre de comptes: " + nbComptes + "\n");
+//            statsArea.append("Nombre de employes: " + nbEmployes + "\n");
+//            statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
+//            statsArea.setEditable(false);
+//            
+//            statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
+//            chargerEmployes();
+//            chargerStatistiques();
+//            tabbedPane.addTab("Statistiques", statsPanel);
+//        } catch (SQLException e) {
+//            JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), 
+//                                        "Erreur", JOptionPane.ERROR_MESSAGE);
+//        }
+    
 //        JPanel statsPanel = new JPanel(new GridLayout(4, 2, 10, 10));
 //        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 //
@@ -187,7 +203,7 @@ class DirecteurInterface extends EmployeInterface {
                 pst.executeUpdate();
 
                 chargerEmployes();
-                //chargerStatistiques();
+                chargerStatistiques();
                 JOptionPane.showMessageDialog(this, "Employé ajouté avec succès !");
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -231,7 +247,12 @@ class DirecteurInterface extends EmployeInterface {
                 pst.setString(2, prenomField.getText());
                 pst.setString(3, cinField.getText());
                 pst.setString(4, loginField.getText());
-                pst.setString(5, new String(passwordField.getPassword()));
+                
+                String password = new String(passwordField.getPassword());
+                String hashedPassword = PasswordUtils.hashPassword(password);
+                pst.setString(5, hashedPassword);
+
+                
                 pst.setInt(6, empId);
                 pst.executeUpdate();
 
@@ -292,49 +313,95 @@ class DirecteurInterface extends EmployeInterface {
     }
 
     
-    // Under development
     private void chargerStatistiques() {
-        
-        JPanel statsPanel = new JPanel(new BorderLayout());
-        
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-//            
-
-            
             // Nombre de clients
             String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             rs.next();
-            int nbClients = rs.getInt(1);
+            nbClients = rs.getInt(1);
             
             // Nombre de comptes
             sql = "SELECT COUNT(*) FROM comptes";
             rs = stmt.executeQuery(sql);
             rs.next();
-            int nbComptes = rs.getInt(1);
+            nbComptes = rs.getInt(1);
 
-            // Nombre de employe
-            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe' ";
+            // Nombre d'employés
+            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe'";
             rs = stmt.executeQuery(sql);
             rs.next();
-            int nbEmployes = rs.getInt(1);
+            nbEmployes = rs.getInt(1);
             
             // Solde total
             sql = "SELECT SUM(solde) FROM comptes";
             rs = stmt.executeQuery(sql);
             rs.next();
-            double soldeTotal = rs.getDouble(1);
+            soldeTotal = rs.getDouble(1);
             
-            JTextArea statsArea = new JTextArea();
-            statsArea.append("Statistiques de la banque:\n\n");
-            statsArea.append("Nombre de clients: " + nbClients + "\n");
-            statsArea.append("Nombre de comptes: " + nbComptes + "\n");
-            statsArea.append("Nombre de employes: " + nbEmployes + "\n");
-            statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
-            statsArea.setEditable(false);
+            // Mettre à jour le texte
+            statsArea.setFont(new Font("Monospaced", Font.BOLD, 16)); // Police monospace, taille 16, en gras
+            statsArea.setForeground(new Color(0, 102, 204)); // Texte bleu
+            statsArea.setBackground(new Color(230, 240, 255)); // Fond bleu très clair
+
+            statsArea.setText("Statistiques de la banque:\n\n");
+            statsArea.append(String.format("%-25s : %d\n", "Nombre de clients", nbClients));
+            statsArea.append(String.format("%-25s : %d\n", "Nombre de comptes", nbComptes));
+            statsArea.append(String.format("%-25s : %d\n", "Nombre d'employés", nbEmployes));
+            statsArea.append(String.format("%-25s : %s\n", "Solde total",
+                new DecimalFormat("#,##0.00 DH").format(soldeTotal)));
+
             
-            statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), 
+                                        "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+//    // Under development
+//    private void chargerStatistiques() {
+//        
+//        JPanel statsPanel = new JPanel(new BorderLayout());
+//        
+//        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
+////            
+//
+//            
+//            // Nombre de clients
+//            String sql = "SELECT COUNT(*) FROM utilisateurs WHERE type = 'client'";
+//            Statement stmt = conn.createStatement();
+//            ResultSet rs = stmt.executeQuery(sql);
+//            rs.next();
+//            nbClients = rs.getInt(1);
+//            
+//            // Nombre de comptes
+//            sql = "SELECT COUNT(*) FROM comptes";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            nbComptes = rs.getInt(1);
+//
+//            // Nombre de employe
+//            sql = "SELECT COUNT(*) FROM utilisateurs WHERE type='employe' ";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            nbEmployes = rs.getInt(1);
+//            
+//            // Solde total
+//            sql = "SELECT SUM(solde) FROM comptes";
+//            rs = stmt.executeQuery(sql);
+//            rs.next();
+//            soldeTotal = rs.getDouble(1);
+//            
+//            JTextArea statsArea = new JTextArea();
+//            statsArea.append("Statistiques de la banque:\n\n");
+//            statsArea.append("Nombre de clients: " + nbClients + "\n");
+//            statsArea.append("Nombre de comptes: " + nbComptes + "\n");
+//            statsArea.append("Nombre de employes: " + nbEmployes + "\n");
+//            statsArea.append("Solde total: " + new DecimalFormat("#,##0.00 DH").format(soldeTotal) + "\n");
+//            statsArea.setEditable(false);
+//            
+//            statsPanel.add(new JScrollPane(statsArea), BorderLayout.CENTER);
             
             
             
@@ -403,8 +470,5 @@ class DirecteurInterface extends EmployeInterface {
 //            if (rs.next()) {
 //                lblSoldeTotal.setText(rs.getBigDecimal("solde_total") != null ? rs.getBigDecimal("solde_total").toString() + " DH" : "0 DH");
             
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Erreur: " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-        }
+    
     }
-}

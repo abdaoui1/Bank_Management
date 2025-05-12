@@ -142,29 +142,103 @@ class ClientInterface extends JFrame {
         stmt.setInt(1, compteId);
         rs = stmt.executeQuery();
         
-        JTextArea historiqueArea = new JTextArea(10, 40);
-        historiqueArea.setEditable(false);
-        historiqueArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        historiqueArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        historiqueArea.setBackground(Color.WHITE);
-        historiqueArea.append("Dernières transactions:\n\n");
         
-        while (rs.next()) {
-            String type = rs.getString("type");
-            double montant = rs.getDouble("montant");
-            String date = rs.getString("date_transaction");
-            
-            Color textColor = type.equals("depot") ? new Color(0, 100, 0) : 
-                            type.equals("retrait") ? new Color(139, 0, 0) : 
-                            new Color(102, 51, 0);
-            
-            historiqueArea.setForeground(textColor);
-            historiqueArea.append(String.format("[%s] %s: %.2f DH\n", 
-                date.substring(0, 16), 
-                type.equals("depot") ? "Dépot" : 
-                type.equals("retrait") ? "Retrait" : "Transfert", 
-                montant));
-        }
+//        JTextArea historiqueArea = new JTextArea(10, 40);
+//        historiqueArea.setEditable(false);
+//        historiqueArea.setFont(new Font("Monospaced", Font.PLAIN, 15)); // Police uniforme, taille augmentée
+//        historiqueArea.setBackground(new Color(245, 245, 255)); // Fond doux légèrement bleuté
+//        historiqueArea.setBorder(BorderFactory.createCompoundBorder(
+//            BorderFactory.createLineBorder(new Color(180, 180, 255), 1), // Bordure fine bleue
+//            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+//        ));
+//        historiqueArea.setForeground(Color.DARK_GRAY); // Couleur de base du texte
+//
+//        historiqueArea.setText("🕘 Dernières transactions:\n\n");
+//
+//        while (rs.next()) {
+//            String type = rs.getString("type");
+//            double montant = rs.getDouble("montant");
+//            String date = rs.getString("date_transaction");
+//
+//            String typeTexte;
+//            Color textColor;
+//
+//            if (type.equals("depot")) {
+//                typeTexte = "➕ Dépôt";
+//                textColor = new Color(0, 128, 0); // Vert foncé
+//            } else if (type.equals("retrait")) {
+//                typeTexte = "➖ Retrait";
+//                textColor = new Color(178, 34, 34); // Rouge foncé
+//            } else {
+//                typeTexte = "🔄 Transfert";
+//                textColor = new Color(102, 51, 0); // Marron
+//            }
+//
+//            // Change temporairement la couleur si tu veux distinguer chaque ligne
+//            historiqueArea.setForeground(textColor);
+//
+//            historiqueArea.append(String.format("[%s] %s : %.2f DH\n", 
+//                date.substring(0, 16), typeTexte, montant));
+//        }
+        
+        
+        JTextArea historiqueArea = new JTextArea(10, 40);
+      historiqueArea.setEditable(false);
+      historiqueArea.setFont(new Font("Monospaced", Font.PLAIN, 12)); // Police uniforme, taille augmentée
+      historiqueArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+      historiqueArea.setBackground(Color.WHITE);
+      historiqueArea.setText("🕘 Dernières transactions:\n\n");
+      
+      while (rs.next()) {
+          String type = rs.getString("type");
+          double montant = rs.getDouble("montant");
+          String date = rs.getString("date_transaction");
+
+          String typeTexte;
+          Color textColor;
+
+          if (type.equals("depot")) {
+              typeTexte = "➕ Dépôt";
+              textColor = new Color(0, 128, 0); // Vert foncé
+          } else if (type.equals("retrait")) {
+              typeTexte = "➖ Retrait";
+              textColor = new Color(178, 34, 34); // Rouge foncé
+          } else {
+              typeTexte = "🔄 Transfert";
+              textColor = new Color(102, 51, 0); // Marron
+          }
+          // Change temporairement la couleur si tu veux distinguer chaque ligne
+          historiqueArea.setForeground(textColor);
+
+          historiqueArea.append(String.format("[%s] %s : %.2f DH\n", 
+              date.substring(0, 16), typeTexte, montant));
+      }
+      
+
+//        
+//        JTextArea historiqueArea = new JTextArea(10, 40);
+//        historiqueArea.setEditable(false);
+//        historiqueArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+//        historiqueArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+//        historiqueArea.setBackground(Color.WHITE);
+//        historiqueArea.append("Dernières transactions:\n\n");
+//        
+//        while (rs.next()) {
+//            String type = rs.getString("type");
+//            double montant = rs.getDouble("montant");
+//            String date = rs.getString("date_transaction");
+//            
+//            Color textColor = type.equals("depot") ? new Color(0, 100, 0) : 
+//                            type.equals("retrait") ? new Color(139, 0, 0) : 
+//                            new Color(102, 51, 0);
+//            
+//            historiqueArea.setForeground(textColor);
+//            historiqueArea.append(String.format("[%s] %s: %.2f DH\n", 
+//                date.substring(0, 16), 
+//                type.equals("depot") ? "Dépot" : 
+//                type.equals("retrait") ? "Retrait" : "Transfert", 
+//                montant));
+//        }
         
         // Ajout des composants
         panel.add(infoPanel, BorderLayout.NORTH);
@@ -257,6 +331,9 @@ class ClientInterface extends JFrame {
         value.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         panel.add(value);
     }
+    
+
+
     
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
