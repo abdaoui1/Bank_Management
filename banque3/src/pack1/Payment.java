@@ -2,7 +2,7 @@ package pack1;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,73 +11,102 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Payment {
 
-   
-    
-    public  boolean handleFacture(String idCompte , double montant ) throws IOException {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
-            
 
-            // Tests : 
-            boolean hasAccount = false;
-            boolean enoughSolde = false; 
-            
-            // 1) Verifie the account 
-            
-            String sql1 = "SELECT * from comptes WHERE numero_compte = " +  idCompte+";";
-            Statement stmt1 = conn.createStatement();
-            ResultSet rs1 = stmt1.executeQuery(sql1);
-            System.out.println("C'est bon");
-            String serveurIP = "192.168.164.254";
-            int port = 5000;
-            
-            Socket socket = new Socket( serveurIP, port);
-            PrintWriter out = new PrintWriter(socket.getOutputStream() , true );
-            if ( rs1.next() )
-            {
-               hasAccount = true;
-               
-               String sql2 = "SELECT solde from comptes WHERE numero_compte = " +  idCompte+";";
-               Statement stmt2 = conn.createStatement();
-               ResultSet rs2 = stmt2.executeQuery(sql2);
-               if ( rs2.next() ) {
-                   double solde = rs2.getDouble("solde");
-                   if ( solde > montant)
-                   enoughSolde = true;
-               } 
-               
-            }
-            
-            // Envoie du code : 
-            if ( hasAccount && enoughSolde ) out.print(1);
-            else {
-                if (hasAccount && !enoughSolde ) out.println(2);
-               else if ( !hasAccount)  out.print(3);
-                
-            }
+    public static void envoyerMessageAuServeur(String adresse, int port, String message, Map<String, Object> paiement) {
+        try (Socket socket = new Socket(adresse, port);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+
+            System.out.println("🔄 Connexion au serveur...");
+            // Envoyer le message complet
+            out.writeObject(message);
+
+            // Envoyer l'objet Map
+            out.writeObject(paiement);
+
+            System.out.println("✅ Message et objet envoyés au serveur avec succès.");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'envoi : " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
            
-            
-           
-            
-            String sql = "UPDATE comptes SET solde=solde-? WHERE numero_compte =? AND type_compte='courant';";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            
-            pst.setDouble(1, montant);
-            pst.setString(2, idCompte );
-           // pst.setInt(1, idCompte);
-           // pst.setDouble(2, montant);
-            pst.executeUpdate();
-            System.out.println("payemnt avec succes");  
-            return true ;
+
+    public boolean handleFacture(int idCompte,int idUser,  double montant) throws IOException {
+        boolean hasAccount = false;
+        boolean enoughSolde = false;
+
+        Map<String, Object> response = new HashMap<>();
+        //Prepared response 
+        response.put("idFacture", idCompte);
+        response.put("idUser", idUser);
+        
+        String serveurIP = "192.168.110.254";
+        int port = 5000;
+
+        try (
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "");
+            Socket socket = new Socket(serveurIP, port);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
+        ) {
+            // 1. Vérification du compte et du solde
+            String sqlCheck = "SELECT solde FROM comptes WHERE numero_compte = ? AND type_compte = 'courant'";
+            try (PreparedStatement stmtCheck = conn.prepareStatement(sqlCheck)) {
+                stmtCheck.setInt(1, idUser);
+                try (ResultSet rs = stmtCheck.executeQuery()) {
+                    if (rs.next()) {
+                        hasAccount = true;
+                        double solde = rs.getDouble("solde");
+                        if (solde >= montant) {
+                            enoughSolde = true;
+                        }
+                    }
+                }
+            }
+
+            // 2. 
+            if (hasAccount && enoughSolde) {
+
+                // 2. Mise à jour du solde (paiement)
+                String sqlUpdate = "UPDATE comptes SET solde = solde - ? WHERE numero_compte = ? AND type_compte = 'courant'";
+                try (PreparedStatement pst = conn.prepareStatement(sqlUpdate)) {
+                    pst.setDouble(1, montant);
+                    pst.setInt(2, idUser);
+                    pst.executeUpdate();
+                    System.out.println("Paiement avec succès.");
+                    
+                    // 3. preparation de la reponse
+                    
+                    response.put("description", "A");
+                    envoyerMessageAuServeur(serveurIP, port, "Paiment effectue", response);
+                    
+                }
+
+                return true;
+            } else if (hasAccount) {
+                out.print(2); // solde insuffisant
+                response.put("description", "B");
+                envoyerMessageAuServeur(serveurIP, port, "Paiment effectue", response);
+            } else {
+                out.print(3); // compte inexistant
+                response.put("description", "C");
+                envoyerMessageAuServeur(serveurIP, port, "Paiment effectue", response);
+            }
+
+            return false;
+
         } catch (SQLException e) {
+            e.printStackTrace(); // pour le debug
             return false;
         }
-        
     }
+
     
     
    public  void payer() throws IOException {
@@ -102,11 +131,13 @@ public class Payment {
                        System.out.println("ID Facture : " + paiement.get("id_facture"));
                        System.out.println("Montant : " + paiement.get("montant"));
                        System.out.println("User : " + paiement.get("user"));
-                       System.out.println("Méthode : " + paiement.get("methode"));
+                       
                        
                        System.out.println("=====================");
-                       double mon = Double.parseDouble( paiement.get("montant").toString() );
-                       handleFacture(paiement.get("id_facture").toString() , mon);
+                       int idFacture = Integer.parseInt( paiement.get("id_facture").toString() );
+                       double montant = Double.parseDouble( paiement.get("montant").toString() );
+                       int idUser = Integer.parseInt( paiement.get("user").toString() );
+                       handleFacture( idFacture, idUser ,montant);
                    } else {
                        System.out.println("Objet non reconnu.");
                    }

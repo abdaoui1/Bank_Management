@@ -1,7 +1,14 @@
-package secondary;
-
-public class SignUp {
-
+//package secondary;
+//
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//import java.sql.PreparedStatement;
+//import java.sql.SQLException;
+//
+//import pack1.PasswordUtils;
+//
+//public class SignUp {
+//
 //    public static void main(String[] args)
 //    {
 //       
@@ -24,9 +31,9 @@ public class SignUp {
 //                // TODO Auto-generated catch block
 //                e.printStackTrace();
 //            }  }
-
-        
-
-    
-
-}
+//
+//        
+//
+//    
+//
+//}

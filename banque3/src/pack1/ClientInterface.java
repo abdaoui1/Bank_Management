@@ -42,7 +42,7 @@ class ClientInterface extends JFrame {
         UIManager.setLookAndFeel(new NimbusLookAndFeel() );
         this.clientId = clientId;
         setTitle("Espace Client");
-        setSize(600, 500);
+        setSize(800, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         

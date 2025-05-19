@@ -21,7 +21,7 @@ class BanqueQuarta extends JFrame {
     public BanqueQuarta() {
         setTitle("Banque Quarta");
         setSize(800, 400); // Taille modifiée pour une interface plus large
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
