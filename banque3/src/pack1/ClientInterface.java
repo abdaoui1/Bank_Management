@@ -1,11 +1,9 @@
 package pack1;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,6 +25,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
+import secondary.Styles;
+
 class ClientInterface extends JFrame {
     /**
      * 
@@ -34,10 +34,7 @@ class ClientInterface extends JFrame {
     private static final long serialVersionUID = 1L;
     private int clientId;
     private Connection conn;
-    private Color primaryColor = new Color(0, 102, 204); // Bleu foncé
-    private Color secondaryColor = new Color(240, 240, 240); // Gris clair
-    private Color buttonTextColor = new Color(0, 70, 140); // Bleu plus foncé pour le texte
-    
+ 
     public ClientInterface(int clientId) throws UnsupportedLookAndFeelException {
         UIManager.setLookAndFeel(new NimbusLookAndFeel() );
         this.clientId = clientId;
@@ -63,8 +60,8 @@ class ClientInterface extends JFrame {
     
     private void initUI() throws SQLException {
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(secondaryColor);
-        tabbedPane.setForeground(primaryColor);
+        tabbedPane.setBackground(Styles.LIGHT_GRIS);
+        tabbedPane.setForeground(Styles.PRIMARY_COLOR);
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
         
         // Onglet Compte Courant
@@ -81,7 +78,7 @@ class ClientInterface extends JFrame {
     private JPanel createComptePanel(String typeCompte) throws SQLException {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        panel.setBackground(secondaryColor);
+        panel.setBackground(Styles.LIGHT_GRIS);
         
         // Vérifier si le compte existe
         String sql = "SELECT * FROM comptes WHERE id_client = ? AND type_compte = ?";
@@ -105,7 +102,7 @@ class ClientInterface extends JFrame {
         // Affichage des infos du compte
         JPanel infoPanel = new JPanel(new GridLayout(3, 2, 10, 10));
         infoPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(primaryColor, 1), 
+            BorderFactory.createLineBorder(Styles.PRIMARY_COLOR, 1), 
             "Informations du compte"));
         infoPanel.setBackground(Color.WHITE);
         
@@ -118,13 +115,13 @@ class ClientInterface extends JFrame {
         // Opérations
         JPanel operationsPanel = new JPanel(new GridLayout(1, 5, 10, 10));
         operationsPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
-        operationsPanel.setBackground(secondaryColor);
+        operationsPanel.setBackground(Styles.LIGHT_GRIS);
         
-        JButton consulterBtn = createStyledButton("Consulter", Color.WHITE);
-        JButton verserBtn = createStyledButton("Verser", new Color(220, 255, 220)); // Vert clair
-        JButton retirerBtn = createStyledButton("Retirer", new Color(255, 220, 220)); // Rouge clair
-        JButton transfertBtn = createStyledButton("Transfert", new Color(255, 235, 200)); // Orange clair
-        JButton imprimerBtn = createStyledButton("Imprimer relevé", new Color(230, 220, 255)); // Violet clair
+        JButton consulterBtn = Styles.createStyledButton("Consulter", Styles.PINK_COLOR ,"users.png");
+        JButton verserBtn = Styles.createStyledButton("Verser", Styles.SUCCESS_COLOR ,"users.png"); // Vert clair
+        JButton retirerBtn = Styles.createStyledButton("Retirer", Styles.SECONDARY_COLOR ,"users.png"); // Rouge clair
+        JButton transfertBtn = Styles.createStyledButton("Transfert", Styles.WARNING_COLOR ,"users.png"); // Orange clair
+        JButton imprimerBtn = Styles.createStyledButton("Imprimer relevé", Styles.PRIMARY_COLOR ,"users.png"); // Violet clair
         
         operationsPanel.add(consulterBtn);
         operationsPanel.add(verserBtn);
@@ -142,44 +139,7 @@ class ClientInterface extends JFrame {
         stmt.setInt(1, compteId);
         rs = stmt.executeQuery();
         
-        
-//        JTextArea historiqueArea = new JTextArea(10, 40);
-//        historiqueArea.setEditable(false);
-//        historiqueArea.setFont(new Font("Monospaced", Font.PLAIN, 15)); // Police uniforme, taille augmentée
-//        historiqueArea.setBackground(new Color(245, 245, 255)); // Fond doux légèrement bleuté
-//        historiqueArea.setBorder(BorderFactory.createCompoundBorder(
-//            BorderFactory.createLineBorder(new Color(180, 180, 255), 1), // Bordure fine bleue
-//            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-//        ));
-//        historiqueArea.setForeground(Color.DARK_GRAY); // Couleur de base du texte
-//
-//        historiqueArea.setText("🕘 Dernières transactions:\n\n");
-//
-//        while (rs.next()) {
-//            String type = rs.getString("type");
-//            double montant = rs.getDouble("montant");
-//            String date = rs.getString("date_transaction");
-//
-//            String typeTexte;
-//            Color textColor;
-//
-//            if (type.equals("depot")) {
-//                typeTexte = "➕ Dépôt";
-//                textColor = new Color(0, 128, 0); // Vert foncé
-//            } else if (type.equals("retrait")) {
-//                typeTexte = "➖ Retrait";
-//                textColor = new Color(178, 34, 34); // Rouge foncé
-//            } else {
-//                typeTexte = "🔄 Transfert";
-//                textColor = new Color(102, 51, 0); // Marron
-//            }
-//
-//            // Change temporairement la couleur si tu veux distinguer chaque ligne
-//            historiqueArea.setForeground(textColor);
-//
-//            historiqueArea.append(String.format("[%s] %s : %.2f DH\n", 
-//                date.substring(0, 16), typeTexte, montant));
-//        }
+
         
         
         JTextArea historiqueArea = new JTextArea(10, 40);
@@ -215,31 +175,7 @@ class ClientInterface extends JFrame {
       }
       
 
-//        
-//        JTextArea historiqueArea = new JTextArea(10, 40);
-//        historiqueArea.setEditable(false);
-//        historiqueArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-//        historiqueArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-//        historiqueArea.setBackground(Color.WHITE);
-//        historiqueArea.append("Dernières transactions:\n\n");
-//        
-//        while (rs.next()) {
-//            String type = rs.getString("type");
-//            double montant = rs.getDouble("montant");
-//            String date = rs.getString("date_transaction");
-//            
-//            Color textColor = type.equals("depot") ? new Color(0, 100, 0) : 
-//                            type.equals("retrait") ? new Color(139, 0, 0) : 
-//                            new Color(102, 51, 0);
-//            
-//            historiqueArea.setForeground(textColor);
-//            historiqueArea.append(String.format("[%s] %s: %.2f DH\n", 
-//                date.substring(0, 16), 
-//                type.equals("depot") ? "Dépot" : 
-//                type.equals("retrait") ? "Retrait" : "Transfert", 
-//                montant));
-//        }
-        
+
         // Ajout des composants
         panel.add(infoPanel, BorderLayout.NORTH);
         panel.add(operationsPanel, BorderLayout.CENTER);
@@ -324,7 +260,7 @@ class ClientInterface extends JFrame {
     private void addStyledLabel(JPanel panel, String labelText, String valueText) {
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        label.setForeground(primaryColor);
+        label.setForeground(Styles.PRIMARY_COLOR);
         panel.add(label);
         
         JLabel value = new JLabel(valueText);
@@ -334,29 +270,7 @@ class ClientInterface extends JFrame {
     
 
 
-    
-    private JButton createStyledButton(String text, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setBackground(bgColor);
-        button.setForeground(buttonTextColor); // Texte en bleu
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Effet hover
-        button.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(bgColor.darker());
-            }
-            
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(bgColor);
-            }
-        });
-        
-        return button;
-    }
+
     
     private void showOperationDialog(String title, String message, int compteId, String operationType, double solde) {
         JPanel panel = new JPanel(new BorderLayout(10, 10));

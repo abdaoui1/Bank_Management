@@ -1,29 +1,51 @@
 package pack1;
 
-import java.awt.*;
-import java.sql.*;
-import java.text.DecimalFormat;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DecimalFormat;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+import javax.swing.table.DefaultTableModel;
+
+import secondary.Styles;
 
 public class DirecteurInterface extends EmployeInterface {
     private static final long serialVersionUID = 1L;
     
-    // Constantes pour les couleurs
-    private static final Color PRIMARY_COLOR = new Color(25, 118, 210);
-    private static final Color SECONDARY_COLOR = new Color(66, 66, 66);
-    private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);
-    private static final Color SUCCESS_COLOR = new Color(46, 125, 50);
-    private static final Color WARNING_COLOR = new Color(237, 108, 2);
-    private static final Color DANGER_COLOR = new Color(211, 47, 47);
+
     
-    // Polices
-    private static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 16);
-    private static final Font REGULAR_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     
     private DefaultTableModel empTableModel;
     private JTable empTable;
@@ -38,60 +60,54 @@ public class DirecteurInterface extends EmployeInterface {
         
         // Configurer le panneau principal
         JTabbedPane tabbedPane = (JTabbedPane) getContentPane().getComponent(0);
-        tabbedPane.setFont(REGULAR_FONT);
-        tabbedPane.setBackground(BACKGROUND_COLOR);
+        tabbedPane.setFont(Styles.REGULAR_FONT);
+        tabbedPane.setBackground(Styles.BACKGROUND_COLOR);
         
         // Créer la barre d'état
-        statusLabel = new JLabel(" Système prêt", createIcon("check.png", 16), JLabel.LEFT);
+        statusLabel = new JLabel(" Système prêt", Styles.createIcon("check.png", 16), JLabel.LEFT);
         statusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         statusLabel.setBorder(new EmptyBorder(5, 10, 5, 10));
         getContentPane().add(statusLabel, BorderLayout.SOUTH);
 
         // === Onglet Gestion des employés ===
         JPanel empPanel = createEmployesPanel();
-        tabbedPane.addTab("Gestion des employés", createIcon("users.png", 20), empPanel);
+        tabbedPane.addTab("Gestion des employés", Styles.createIcon("users.png", 20), empPanel);
 
         // === Onglet Statistiques ===
         JPanel statsPanel = createStatistiquesPanel();
-        tabbedPane.addTab("Statistiques", createIcon("chart.png", 20), statsPanel);
+        tabbedPane.addTab("Statistiques", Styles.createIcon("chart.png", 20), statsPanel);
 
         // Charger les données au démarrage
         SwingUtilities.invokeLater(this::chargerEmployes);
         
         // Style des onglets
-        tabbedPane.setBackgroundAt(tabbedPane.indexOfTab("Gestion des employés"), PRIMARY_COLOR);
+        tabbedPane.setBackgroundAt(tabbedPane.indexOfTab("Gestion des employés"), Styles.PRIMARY_COLOR);
         tabbedPane.setForegroundAt(tabbedPane.indexOfTab("Gestion des employés"), Color.WHITE);
     }
     
     private JPanel createEmployesPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(BACKGROUND_COLOR);
+        mainPanel.setBackground(Styles.BACKGROUND_COLOR);
         
         // Titre du panneau
         JLabel titleLabel = new JLabel("Gestion des Employés");
-        titleLabel.setFont(TITLE_FONT);
-        titleLabel.setForeground(PRIMARY_COLOR);
+        titleLabel.setFont(Styles.TITLE_FONT);
+        titleLabel.setForeground(Styles.PRIMARY_COLOR);
         titleLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
         
-        // Zone de recherche
-        JPanel searchPanel = new JPanel(new BorderLayout());
-        searchPanel.setBackground(BACKGROUND_COLOR);
-        JTextField searchField = new JTextField();
-        searchField.putClientProperty("JTextField.placeholderText", "Rechercher un employé...");
-        searchField.setFont(REGULAR_FONT);
-        JButton searchButton = createIconButton("search.png", "Rechercher");
-        searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(searchButton, BorderLayout.EAST);
         
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(BACKGROUND_COLOR);
+        headerPanel.setBackground(Styles.BACKGROUND_COLOR);
         headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(searchPanel, BorderLayout.EAST);
+//        headerPanel.add(searchPanel, BorderLayout.EAST);
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
         // Table des employés avec style moderne
         empTableModel = new DefaultTableModel(new Object[]{"ID", "Nom", "Prénom", "CIN", "Login"}, 0) {
+           
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -99,14 +115,14 @@ public class DirecteurInterface extends EmployeInterface {
         };
         
         empTable = new JTable(empTableModel);
-        empTable.setFont(REGULAR_FONT);
+        empTable.setFont(Styles.REGULAR_FONT);
         empTable.setRowHeight(30);
         empTable.setShowGrid(false);
         empTable.setIntercellSpacing(new Dimension(0, 0));
         empTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        empTable.getTableHeader().setBackground(PRIMARY_COLOR);
-        empTable.getTableHeader().setForeground(Color.WHITE);
-        empTable.setSelectionBackground(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 100));
+        empTable.getTableHeader().setBackground(Styles.PRIMARY_COLOR);
+        empTable.getTableHeader().setForeground(Color.BLACK);
+        empTable.setSelectionBackground(new Color(Styles.PRIMARY_COLOR.getRed(), Styles.PRIMARY_COLOR.getGreen(), Styles.PRIMARY_COLOR.getBlue(), 100));
         
         // Définir des largeurs de colonnes appropriées
         empTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
@@ -131,19 +147,19 @@ public class DirecteurInterface extends EmployeInterface {
         mainPanel.add(scrollPane, BorderLayout.CENTER);
         
         // Panneau de boutons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttonPanel.setBackground(BACKGROUND_COLOR);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(Styles.BACKGROUND_COLOR);
         
-        JButton btnAdd = createStyledButton("Ajouter", SUCCESS_COLOR, "plus.png");
+        JButton btnAdd = Styles.createStyledButton("Ajouter", Styles.SUCCESS_COLOR, "add.png");
         btnAdd.addActionListener(e -> ajouterEmploye());
         
-        JButton btnEdit = createStyledButton("Modifier", PRIMARY_COLOR, "edit.png");
+        JButton btnEdit = Styles.createStyledButton("Modifier", Styles.PRIMARY_COLOR, "edit.png");
         btnEdit.addActionListener(e -> modifierEmploye());
         
-        JButton btnDelete = createStyledButton("Supprimer", DANGER_COLOR, "trash.png");
+        JButton btnDelete = Styles.createStyledButton("Supprimer", Styles.DANGER_COLOR, "trash_icon.png");
         btnDelete.addActionListener(e -> supprimerEmploye());
         
-        JButton btnRefresh = createStyledButton("Actualiser", SECONDARY_COLOR, "refresh.png");
+        JButton btnRefresh = Styles.createStyledButton("Actualiser", Styles.SECONDARY_COLOR, "refresh.png");
         btnRefresh.addActionListener(e -> chargerEmployes());
         
         buttonPanel.add(btnAdd);
@@ -159,17 +175,17 @@ public class DirecteurInterface extends EmployeInterface {
     private JPanel createStatistiquesPanel() {
         JPanel statsPanel = new JPanel(new BorderLayout(15, 15));
         statsPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        statsPanel.setBackground(BACKGROUND_COLOR);
+        statsPanel.setBackground(Styles.BACKGROUND_COLOR);
         
         JLabel titleLabel = new JLabel("Statistiques de la Banque");
-        titleLabel.setFont(TITLE_FONT);
-        titleLabel.setForeground(PRIMARY_COLOR);
+        titleLabel.setFont(Styles.TITLE_FONT);
+        titleLabel.setForeground(Styles.PRIMARY_COLOR);
         titleLabel.setBorder(new EmptyBorder(0, 0, 20, 0));
         statsPanel.add(titleLabel, BorderLayout.NORTH);
         
         // Panneau principal pour les statistiques
         JPanel cardsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
-        cardsPanel.setBackground(BACKGROUND_COLOR);
+        cardsPanel.setBackground(Styles.BACKGROUND_COLOR);
         
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
             Statement stmt = conn.createStatement();
@@ -178,7 +194,7 @@ public class DirecteurInterface extends EmployeInterface {
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM utilisateurs WHERE type='client'");
             rs.next();
             int nbClients = rs.getInt(1);
-            JPanel clientCard = createStatCard("Clients", String.valueOf(nbClients), "clients.png", new Color(3, 155, 229));
+            JPanel clientCard = createStatCard("Clients", String.valueOf(nbClients), "add.png", new Color(3, 155, 229));
             cardsPanel.add(clientCard);
             
             // Statistiques comptes
@@ -231,7 +247,7 @@ public class DirecteurInterface extends EmployeInterface {
             detailsPanel.add(detailsArea, BorderLayout.CENTER);
             
             JPanel contentPanel = new JPanel(new BorderLayout(0, 20));
-            contentPanel.setBackground(BACKGROUND_COLOR);
+            contentPanel.setBackground(Styles.BACKGROUND_COLOR);
             contentPanel.add(cardsPanel, BorderLayout.NORTH);
             contentPanel.add(detailsPanel, BorderLayout.CENTER);
             
@@ -239,22 +255,22 @@ public class DirecteurInterface extends EmployeInterface {
             
         } catch (SQLException e) {
             JPanel errorPanel = new JPanel(new BorderLayout());
-            errorPanel.setBackground(new Color(DANGER_COLOR.getRed(), DANGER_COLOR.getGreen(), DANGER_COLOR.getBlue(), 30));
+            errorPanel.setBackground(new Color(Styles.DANGER_COLOR.getRed(), Styles.DANGER_COLOR.getGreen(), Styles.DANGER_COLOR.getBlue(), 30));
             errorPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
             
             JLabel errorLabel = new JLabel("Erreur lors du chargement des statistiques: " + e.getMessage());
-            errorLabel.setForeground(DANGER_COLOR);
-            errorLabel.setFont(REGULAR_FONT);
+            errorLabel.setForeground(Styles.DANGER_COLOR);
+            errorLabel.setFont(Styles.REGULAR_FONT);
             errorPanel.add(errorLabel, BorderLayout.CENTER);
             
             statsPanel.add(errorPanel, BorderLayout.CENTER);
         }
         
-        JButton refreshButton = createStyledButton("Actualiser les statistiques", PRIMARY_COLOR, "refresh.png");
+        JButton refreshButton = Styles.createStyledButton("Actualiser les statistiques", Styles.PRIMARY_COLOR, "refresh.png");
         refreshButton.addActionListener(e -> refreshStatistics(statsPanel));
         
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottomPanel.setBackground(BACKGROUND_COLOR);
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        bottomPanel.setBackground(Styles.BACKGROUND_COLOR);
         bottomPanel.add(refreshButton);
         
         statsPanel.add(bottomPanel, BorderLayout.SOUTH);
@@ -270,7 +286,7 @@ public class DirecteurInterface extends EmployeInterface {
                 new EmptyBorder(15, 15, 15, 15)
         ));
         
-        JLabel iconLabel = new JLabel(createIcon(iconName, 32));
+        JLabel iconLabel = new JLabel(Styles.createIcon(iconName, 32));
         iconLabel.setHorizontalAlignment(JLabel.CENTER);
         iconLabel.setVerticalAlignment(JLabel.CENTER);
         JPanel iconPanel = new JPanel(new BorderLayout());
@@ -281,7 +297,7 @@ public class DirecteurInterface extends EmployeInterface {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setForeground(SECONDARY_COLOR);
+        titleLabel.setForeground(Styles.SECONDARY_COLOR);
         
         JLabel valueLabel = new JLabel(value);
         valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -306,7 +322,7 @@ public class DirecteurInterface extends EmployeInterface {
             JTabbedPane tabbedPane = (JTabbedPane) parent;
             index = tabbedPane.indexOfComponent(statsPanel);
             tabbedPane.removeTabAt(index);
-            tabbedPane.insertTab("Statistiques", createIcon("chart.png", 20), createStatistiquesPanel(), null, index);
+            tabbedPane.insertTab("Statistiques", Styles.createIcon("chart.png", 20), createStatistiquesPanel(), null, index);
             tabbedPane.setSelectedIndex(index);
         }
         
@@ -349,7 +365,7 @@ public class DirecteurInterface extends EmployeInterface {
         JButton cancelButton = new JButton("Annuler");
         cancelButton.addActionListener(e -> dialog.dispose());
         
-        JButton saveButton = createStyledButton("Enregistrer", SUCCESS_COLOR, "check.png");
+        JButton saveButton = Styles.createStyledButton("Enregistrer", Styles.SUCCESS_COLOR, "check.png");
         saveButton.addActionListener(e -> {
             if (nom.getText().trim().isEmpty() || prenom.getText().trim().isEmpty() || 
                 cin.getText().trim().isEmpty() || login.getText().trim().isEmpty() || 
@@ -426,7 +442,7 @@ public class DirecteurInterface extends EmployeInterface {
         JButton cancelButton = new JButton("Annuler");
         cancelButton.addActionListener(e -> dialog.dispose());
         
-        JButton saveButton = createStyledButton("Enregistrer", PRIMARY_COLOR, "check.png");
+        JButton saveButton = Styles.createStyledButton("Enregistrer", Styles.PRIMARY_COLOR, "check.png");
         saveButton.addActionListener(e -> {
             if (nom.getText().trim().isEmpty() || prenom.getText().trim().isEmpty() || 
                 cin.getText().trim().isEmpty() || login.getText().trim().isEmpty()) {
@@ -490,12 +506,12 @@ public class DirecteurInterface extends EmployeInterface {
         JPanel confirmPanel = new JPanel(new BorderLayout(10, 10));
         confirmPanel.setBorder(new EmptyBorder(20, 20, 10, 20));
         
-        JLabel warningIcon = new JLabel(createIcon("warning.png", 32));
+        JLabel warningIcon = new JLabel(Styles.createIcon("warning.png", 32));
         
         JLabel confirmMessage = new JLabel("<html>Êtes-vous sûr de vouloir supprimer l'employé:<br/><b>" + 
                                          nomComplet + "</b> (ID: " + empId + ")?<br/><br/>" +
                                          "<font color='#C62828'>Cette action est irréversible.</font></html>");
-        confirmMessage.setFont(REGULAR_FONT);
+        confirmMessage.setFont(Styles.REGULAR_FONT);
         
         confirmPanel.add(warningIcon, BorderLayout.WEST);
         confirmPanel.add(confirmMessage, BorderLayout.CENTER);
@@ -508,7 +524,7 @@ public class DirecteurInterface extends EmployeInterface {
         JButton cancelButton = new JButton("Annuler");
         cancelButton.addActionListener(e -> confirmDialog.dispose());
         
-        JButton deleteButton = createStyledButton("Supprimer", DANGER_COLOR, "trash.png");
+        JButton deleteButton = Styles.createStyledButton("Supprimer", Styles.DANGER_COLOR, "trash_icon.png");
         deleteButton.addActionListener(e -> {
             try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quarta", "root", "")) {
                 PreparedStatement pst = conn.prepareStatement("DELETE FROM utilisateurs WHERE id=? AND type='employe'");
@@ -563,54 +579,10 @@ public class DirecteurInterface extends EmployeInterface {
     
     // === Méthodes utilitaires pour l'interface utilisateur ===
     
-    private JButton createStyledButton(String text, Color color, String iconName) {
-        JButton btn = new JButton(text);
-        if (iconName != null) {
-            btn.setIcon(createIcon(iconName, 16));
-        }
-        btn.setBackground(color);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setMargin(new Insets(8, 15, 8, 15));
-        
-        // Effet au survol
-        btn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(
-                    (int)(color.getRed() * 0.8),
-                    (int)(color.getGreen() * 0.8),
-                    (int)(color.getBlue() * 0.8)
-                ));
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(color);
-            }
-        });
-        
-        return btn;
-    }
-    
-    private JButton createIconButton(String iconName, String toolTip) {
-        JButton btn = new JButton(createIcon(iconName, 16));
-        btn.setToolTipText(toolTip);
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
-    }
-    
-    private Icon createIcon(String name, int size) {
-        // Placeholder pour les icônes - dans une vraie application, vous chargeriez des icônes réelles
-        return new ImageIcon();
-        
-        // Dans une vraie implémentation:
-        // return new ImageIcon(getClass().getResource("/icons/" + name));
-    }
+   
+
+
+
     
     private JLabel createFieldLabel(String text) {
         JLabel label = new JLabel(text);

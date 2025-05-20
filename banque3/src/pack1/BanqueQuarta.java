@@ -75,7 +75,7 @@ class BanqueQuarta extends JFrame {
         JLabel logoLabel = new JLabel();
         logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
         try {
-            ImageIcon icon = new ImageIcon(getClass().getResource("/imgs/v2.png")); // Remplacer "/logo1.png" par votre image
+            ImageIcon icon = new ImageIcon(getClass().getResource("/imgs/bank_logo.png")); // Remplacer "/logo1.png" par votre image
             Image img = icon.getImage().getScaledInstance(450, 300, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(img));
         } catch (Exception e) {

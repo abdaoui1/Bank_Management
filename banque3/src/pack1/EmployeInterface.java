@@ -2,12 +2,11 @@ package pack1;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -16,7 +15,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -29,89 +27,119 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+
+import secondary.Styles;
 
 class EmployeInterface extends JFrame {
     /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private Connection conn;
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private Connection conn;
     private String sql2;
-    private Color primaryColor = new Color(0, 102, 153); // Bleu professionnel
-    private Color secondaryColor = new Color(245, 245, 245); // Gris clair
-    private Color buttonTextColor = new Color(0, 70, 140); // Bleu foncé pour le texte
+    // Updated primary color to match DirecteurInterface
+
+
+    
     private JTabbedPane tabbedPane;
 
     public EmployeInterface(int employeId) throws UnsupportedLookAndFeelException {
-        UIManager.setLookAndFeel( new NimbusLookAndFeel() );
+        UIManager.setLookAndFeel(new NimbusLookAndFeel());
         setTitle("Espace Employé ");
         setSize(900, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        
+
         try {
-            try {
-               
-                UIManager.put("TabbedPane.selected", primaryColor);
-                // This tells Swing to change the color of the selected tab in a JTabbedPane
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            
             this.conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/quarta", "root", "");
-            
+                    "jdbc:mysql://localhost:3306/quarta", "root", "");
+
             initUI();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Erreur de connexion: " + e.getMessage(), 
-                                        "Erreur", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erreur de connexion: " + e.getMessage(),
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
             dispose();
         }
     }
-    
+
     private void initUI() throws SQLException {
         tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(secondaryColor);
-        tabbedPane.setForeground(Color.DARK_GRAY);
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        
+        tabbedPane.setBackground(Styles.BACKGROUND_COLOR);
+        // Set font to plain to match DirecteurInterface
+        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14)); 
+
         createClientsTab();
         createComptesTab();
-        
+
+        // Apply the same style to both tabs
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            tabbedPane.setBackgroundAt(i, Styles.PRIMARY_COLOR);
+            tabbedPane.setForegroundAt(i, Color.WHITE);
+        }
+
         add(tabbedPane);
     }
     
     private void createClientsTab() throws SQLException {
-        JPanel clientsPanel = new JPanel(new BorderLayout(10, 10));
-        clientsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        clientsPanel.setBackground(secondaryColor);
+        JPanel clientsPanel = new JPanel(new BorderLayout(15, 15));
+        clientsPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        clientsPanel.setBackground(Styles.BACKGROUND_COLOR);
+        
+     // Titre du panneau
+        JLabel titleLabel = new JLabel("Gestion des Clients");
+        titleLabel.setFont(Styles.TITLE_FONT);
+        titleLabel.setForeground(Styles.PRIMARY_COLOR);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        
+        
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Styles.BACKGROUND_COLOR);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+//        headerPanel.add(searchPanel, BorderLayout.EAST);
+        clientsPanel.add(headerPanel, BorderLayout.NORTH);
+        
+        
         
         JTable clientsTable = new JTable();
-        clientsTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        clientsTable.setRowHeight(25);
-        clientsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        clientsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        
+  
         
         JScrollPane scrollPane = new JScrollPane(clientsTable);
-        scrollPane.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(primaryColor, 1), 
-            "Liste des Clients"));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder() );
         
         String sql = "SELECT id, nom, prenom, cin FROM utilisateurs WHERE type = 'client'";
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(sql);
         clientsTable.setModel(DbUtils.resultSetToTableModel(rs));
         
+        clientsTable.setFont(Styles.REGULAR_FONT);
+        clientsTable.setRowHeight(30);
+        clientsTable.setShowGrid(false);
+        clientsTable.setIntercellSpacing(new Dimension(0, 0));
+        clientsTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        clientsTable.getTableHeader().setBackground(Styles.PRIMARY_COLOR);
+        clientsTable.getTableHeader().setForeground(Color.BLACK);
+        clientsTable.setSelectionBackground(new Color(Styles.PRIMARY_COLOR.getRed(), Styles.PRIMARY_COLOR.getGreen(), Styles.PRIMARY_COLOR.getBlue(), 100));
+        
+        // Définir des largeurs de colonnes appropriées
+        clientsTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
+        clientsTable.getColumnModel().getColumn(1).setPreferredWidth(150); // Nom
+        clientsTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Prénom
+        clientsTable.getColumnModel().getColumn(3).setPreferredWidth(100); // CIN
+        
         // Boutons pour les clients
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        buttonsPanel.setBackground(secondaryColor);
+        buttonsPanel.setBackground(Styles.BACKGROUND_COLOR);
         
-        JButton addClientBtn = createStyledButton("Ajouter Client", new Color(220, 255, 220));
-        JButton addCompteBtn = createStyledButton("Créer Compte", new Color(220, 230, 255));
-        JButton deleteClientBtn = createStyledButton("Supprimer Client", new Color(255, 220, 220));
+        JButton addClientBtn = Styles.createStyledButton("Ajouter Client", Styles.SUCCESS_COLOR ,"add.png");
+        JButton addCompteBtn = Styles.createStyledButton("Créer Compte", Styles.PRIMARY_COLOR,"accounts.png");
+        JButton deleteClientBtn = Styles.createStyledButton("Supprimer Client", Styles.DANGER_COLOR,"trash_icon.png");
         
         buttonsPanel.add(addClientBtn);
         buttonsPanel.add(addCompteBtn);
@@ -120,7 +148,7 @@ class EmployeInterface extends JFrame {
         clientsPanel.add(scrollPane, BorderLayout.CENTER);
         clientsPanel.add(buttonsPanel, BorderLayout.SOUTH);
         
-        tabbedPane.addTab("Gestion Clients", new ImageIcon("client_icon.png"), clientsPanel, "Gérer les clients");
+        tabbedPane.addTab("Gestion Clients", Styles.createIcon("clients.png",20), clientsPanel, "Gérer les clients");
         
         // Actions des boutons clients
         addClientBtn.addActionListener(e -> showAddClientDialog(clientsTable));
@@ -129,19 +157,29 @@ class EmployeInterface extends JFrame {
     }
     
     private void createComptesTab() throws SQLException {
-        JPanel comptesPanel = new JPanel(new BorderLayout(10, 10));
-        comptesPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        comptesPanel.setBackground(secondaryColor);
+        JPanel comptesPanel = new JPanel(new BorderLayout(15, 15));
+        comptesPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        comptesPanel.setBackground(Styles.BACKGROUND_COLOR);
+        
+        
+     // Titre du panneau
+        JLabel titleLabel = new JLabel("Gestion des comptes");
+        titleLabel.setFont(Styles.TITLE_FONT);
+        titleLabel.setForeground(Styles.PRIMARY_COLOR);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        
+        
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Styles.BACKGROUND_COLOR);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+//        headerPanel.add(searchPanel, BorderLayout.EAST);
+        comptesPanel.add(headerPanel, BorderLayout.NORTH);
         
         JTable comptesTable = new JTable();
-        comptesTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        comptesTable.setRowHeight(25);
-        comptesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        comptesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
         JScrollPane comptesScroll = new JScrollPane(comptesTable);
-        comptesScroll.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(primaryColor, 1), 
-            "Liste des Comptes"));
+        comptesScroll.setBorder(BorderFactory.createEmptyBorder() );
         
         String sql = "SELECT c.id, c.numero_compte, c.type_compte, c.solde, u.nom, u.prenom " +
               "FROM comptes c JOIN utilisateurs u ON c.id_client = u.id";
@@ -149,26 +187,61 @@ class EmployeInterface extends JFrame {
         ResultSet rs = stmt.executeQuery(sql);
         comptesTable.setModel(DbUtils.resultSetToTableModel(rs));
         
+        comptesTable.setFont(Styles.REGULAR_FONT);
+        comptesTable.setRowHeight(30);
+        comptesTable.setShowGrid(false);
+        comptesTable.setIntercellSpacing(new Dimension(0, 0));
+        comptesTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        comptesTable.getTableHeader().setBackground(Styles.PRIMARY_COLOR);
+        comptesTable.getTableHeader().setForeground(Color.BLACK);
+        comptesTable.setSelectionBackground(new Color(Styles.PRIMARY_COLOR.getRed(), Styles.PRIMARY_COLOR.getGreen(), Styles.PRIMARY_COLOR.getBlue(), 100));
+        
+        // Définir des largeurs de colonnes appropriées
+        comptesTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
+        comptesTable.getColumnModel().getColumn(1).setPreferredWidth(150); // numero compte
+        comptesTable.getColumnModel().getColumn(2).setPreferredWidth(150); // type compte
+        comptesTable.getColumnModel().getColumn(3).setPreferredWidth(100); // solde
+        comptesTable.getColumnModel().getColumn(4).setPreferredWidth(150); // nom
+        comptesTable.getColumnModel().getColumn(5).setPreferredWidth(150); // prenom
+        
         // Bouton Supprimer Compte
         JPanel compteButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        compteButtonsPanel.setBackground(secondaryColor);
-        JButton deleteCompteBtn = createStyledButton("Supprimer Compte", new Color(255, 200, 200));
+        compteButtonsPanel.setBackground(Styles.BACKGROUND_COLOR);
+        JButton deleteCompteBtn = Styles.createStyledButton("Supprimer Compte", Styles.DANGER_COLOR,"trash_icon.png");
         compteButtonsPanel.add(deleteCompteBtn);
         
         comptesPanel.add(comptesScroll, BorderLayout.CENTER);
         comptesPanel.add(compteButtonsPanel, BorderLayout.SOUTH);
         
-        tabbedPane.addTab("Gestion Comptes", new ImageIcon("account_icon.png"), comptesPanel, "Gérer les comptes bancaires");
+        tabbedPane.addTab("Gestion Comptes", Styles.createIcon("gestion_comptes.png",20), comptesPanel, "Gérer les comptes bancaires");
         
         // Action du bouton supprimer compte
         deleteCompteBtn.addActionListener(e -> deleteCompte(comptesTable));
     }
     
     private JTable getComptesTable() {
-        JPanel comptesPanel = (JPanel) tabbedPane.getComponentAt(1);
-        JScrollPane scrollPane = (JScrollPane) comptesPanel.getComponent(0);
-        return (JTable) scrollPane.getViewport().getView();
+        JPanel clientsPanel = (JPanel) tabbedPane.getComponentAt(1);
+
+        for (Component comp : clientsPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) comp;
+                Component view = scrollPane.getViewport().getView();
+                if (view instanceof JTable) {
+                    return (JTable) view;
+                }
+            }
+        }
+
+        // If not found, return null or throw exception
+        return null;
     }
+
+    
+//    private JTable getComptesTable() {
+//        JPanel comptesPanel = (JPanel) tabbedPane.getComponentAt(1);
+//        JScrollPane scrollPane = (JScrollPane) comptesPanel.getComponent(0);
+//        return (JTable) scrollPane.getViewport().getView();
+//    }
     
     private void deleteClient(JTable clientsTable, JTable comptesTable) {
         int selectedRow = clientsTable.getSelectedRow();
@@ -319,9 +392,27 @@ class EmployeInterface extends JFrame {
     
     private JTable getClientsTable() {
         JPanel clientsPanel = (JPanel) tabbedPane.getComponentAt(0);
-        JScrollPane scrollPane = (JScrollPane) clientsPanel.getComponent(0);
-        return (JTable) scrollPane.getViewport().getView();
+
+        for (Component comp : clientsPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) comp;
+                Component view = scrollPane.getViewport().getView();
+                if (view instanceof JTable) {
+                    return (JTable) view;
+                }
+            }
+        }
+
+        // If not found, return null or throw exception
+        return null;
     }
+
+    
+//    private JTable getClientsTable() {
+//        JPanel clientsPanel = (JPanel) tabbedPane.getComponentAt(0);
+//        JScrollPane scrollPane = (JScrollPane) clientsPanel.getComponent(0);
+//        return (JTable) scrollPane.getViewport().getView();
+//    }
     
     private void refreshTables(JTable clientsTable, JTable comptesTable) {
         try {
@@ -460,35 +551,10 @@ class EmployeInterface extends JFrame {
         }
     }
     
-    protected JButton createStyledButton(String text, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setBackground(bgColor);
-        button.setForeground(buttonTextColor);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(bgColor.darker(), 1),
-            BorderFactory.createEmptyBorder(8, 15, 8, 15)
-        ));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        button.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(bgColor.darker());
-            }
-            
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(bgColor);
-            }
-        });
-        
-        return button;
-    }
-    
     private void addFormField(JPanel panel, String labelText, JComponent field) {
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        label.setForeground(primaryColor);
+        label.setForeground(Styles.PRIMARY_COLOR);
         panel.add(label);
         
         field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
